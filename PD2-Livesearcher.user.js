@@ -2,7 +2,8 @@
 // @name         PD2 Livesearcher
 // @namespace
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=projectdiablo2.com
-// @update-url   https://github.com/D4Enjoyer/PD2-Livesearcher/raw/main/PD2-Livesearcher.user.js
+// @downloadURL  https://github.com/D4Enjoyer/PD2-Livesearcher/raw/main/PD2-Livesearcher.user.js
+// @updateURL    https://github.com/D4Enjoyer/PD2-Livesearcher/raw/main/PD2-Livesearcher.user.js
 // @version      1.02
 // @description  Script to run livesearches on pd2-trade by simulating clicks on the "Search" button. Includes customizable Browser/Sound/Tab notifications.
 // @author       God Gamer with his dear friends Google-search and ChatGPT
@@ -422,25 +423,26 @@
     }
   }
 
-// Function to notify the current tab with a tab title change
-function notifyCurrentTab() {
-  if (!document.hidden) return; // Do not notify if the tab is currently active
+  // Function to notify the current tab with a tab title change
+  function notifyCurrentTab() {
+    if (!document.hidden) return; // Do not notify if the tab is currently active
 
-  // Check if "(!)" is already present in the tab title
-  if (document.title.indexOf('(!) ') !== -1) return;
+    // Check if "(!)" is already present in the tab title
+    if (document.title.indexOf('(!) ') !== -1) return;
 
-  document.title = '(!) ' + document.title; // Add (!) to the tab title
+    document.title = '(!) ' + document.title; // Add (!) to the tab title
 
-  // Listen for tab activation to remove (!)
-  const visibilityChangeListener = function () {
-    if (!document.hidden) {
-      document.removeEventListener('visibilitychange', visibilityChangeListener);
-      document.title = document.title.replace('(!) ', ''); // Remove (!) from tab title
-    }
-  };
+    // Listen for tab activation to remove (!)
+    const visibilityChangeListener = function () {
+      if (!document.hidden) {
+        document.removeEventListener('visibilitychange', visibilityChangeListener);
+        document.title = document.title.replace('(!) ', ''); // Remove (!) from tab title
+      }
+    };
 
-  document.addEventListener('visibilitychange', visibilityChangeListener);
-}
+    document.addEventListener('visibilitychange', visibilityChangeListener);
+  }
+
   // Function to clear tab notifications from all tabs
   function clearTabNotifications() {
     document.title = document.title.replace('(!) ', ''); // Remove (!) from tab title
@@ -451,7 +453,10 @@ function notifyCurrentTab() {
 
   // Trigger the click function when the page loads and create the menu
   window.addEventListener('load', function () {
-    createMenu();
-    requestNotificationPermission(); // Request permission on page load
+    if (window.location.hostname.endsWith('live.projectdiablo2.com') && window.location.pathname === '/market') {
+      // Check if the hostname ends with 'live.projectdiablo2.com' and the path is '/market'
+      createMenu();
+      requestNotificationPermission(); // Request permission on page load
+    }
   });
 })();
