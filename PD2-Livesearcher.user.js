@@ -20,7 +20,7 @@
   let previousValue = null;
   let soundVolume = 0.3; // Default sound volume (0 to 1)
   let selectedSoundIndex = 0; // Default sound index (0 to 4)
-  let enablePushNotifications = true; // Default setting for push notifications
+  let enablePushNotifications = false; // Default setting for push notifications
   let enableSoundNotifications = true; // Default setting for sound notifications
   let enableTabNotifications = true; // Default setting for tab notifications
   const soundFiles = [
