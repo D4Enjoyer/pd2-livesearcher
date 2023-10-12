@@ -1,13 +1,12 @@
 // ==UserScript==
 // @name         PD2 Livesearcher
-// @namespace
+// @namespace    https://github.com/D4Enjoyer/PD2-Livesearcher
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=projectdiablo2.com
-// @downloadURL  https://github.com/D4Enjoyer/PD2-Livesearcher/raw/main/PD2-Livesearcher.user.js
-// @updateURL    https://github.com/D4Enjoyer/PD2-Livesearcher/raw/main/PD2-Livesearcher.user.js
-// @version      1.2.0
+// @version      1.4.0
 // @description  Script to run livesearches on pd2-trade by simulating clicks on the "Search" button. Includes customizable Browser/Sound/Tab notifications.
-// @author       God Gamer with his dear friends Google-search and ChatGPT
+// @author       A God Gamer with his dear friends Google-search and ChatGPT
 // @match        https://live.projectdiablo2.com/market
+// @match        https://projectdiablo2.com/market
 // @grant        GM_notification
 // ==/UserScript==
 
@@ -18,18 +17,46 @@
   let isRunning = false;
   let interval = 5000; // Default interval in milliseconds (5 seconds)
   let previousValue = null;
+  let previousSecondValue = null;
+  let isFirstSearchOfSession = true;
   let soundVolume = 0.3; // Default sound volume (0 to 1)
   let selectedSoundIndex = 0; // Default sound index (0 to 4)
   let enablePushNotifications = false; // Default setting for push notifications
-  let enableSoundNotifications = true; // Default setting for sound notifications
-  let enableTabNotifications = true; // Default setting for tab notifications
-  const soundFiles = [
+  let enableSoundNotifications = false; // Default setting for sound notifications
+  let enableTabNotifications = false; // Default setting for tab notifications
+   const soundFiles = [
     'https://web.poecdn.com/audio/trade/pulse.mp3', // Pulse
     'https://web.poecdn.com/audio/trade/piano.mp3', // Piano
     'https://web.poecdn.com/audio/trade/chime.mp3', // Chime
     'https://web.poecdn.com/audio/trade/gong.mp3', // Gong
     'https://assets.mixkit.co/active_storage/sfx/1792/1792-preview.mp3', // Bell
   ];
+
+  // Function to request notification permission
+  function requestNotificationPermission(permissionType) {
+    if ('Notification' in window) {
+      // Check if the requested permission type is not yet granted
+      if (permissionType === 'push' && !enablePushNotifications) {
+        Notification.requestPermission().then(function (permission) {
+          if (permission === 'granted') {
+            enablePushNotifications = true;
+          }
+        });
+      } else if (permissionType === 'sound' && !enableSoundNotifications) {
+        Notification.requestPermission().then(function (permission) {
+          if (permission === 'granted') {
+            enableSoundNotifications = true;
+          }
+        });
+      } else if (permissionType === 'tab' && !enableTabNotifications) {
+        Notification.requestPermission().then(function (permission) {
+          if (permission === 'granted') {
+            enableTabNotifications = true;
+          }
+        });
+      }
+    }
+  }
 
   // Function to click the button and extract market listing value
   function clickButton() {
@@ -288,7 +315,8 @@
 
     const intervalLabel = document.createElement('label');
     intervalLabel.innerText = 'Interval (milliseconds):';
-    intervalLabel.style.display = 'block';
+    intervalLabel.style.display
+= 'block';
     intervalLabel.style.marginTop = '10px';
     intervalLabel.style.color = 'black';
 
@@ -328,22 +356,24 @@
 
   // Function to extract and notify market listing value
   function extractAndNotifyMarketListingValue() {
-    // Get the entire HTML content of the page
-    const pageHTML = document.documentElement.outerHTML;
+    // Use querySelectorAll to find all elements with the class "image flex justify-center items-center"
+    const elements = document.querySelectorAll('.image.flex.justify-center.items-center');
 
-    // Use a regular expression to find the first "/market/listing/" value
-    const regex = /\/market\/listing\/[a-zA-Z0-9]+/;
+    // Extract the href attribute of the first and second elements, if they exist
+    const firstHref = elements.length > 0 ? elements[0].getAttribute('href') : null;
+    const secondHref = elements.length > 1 ? elements[1].getAttribute('href') : null;
 
-    // Execute the regular expression on the HTML content
-    const match = pageHTML.match(regex);
+    // Log the current first and second href values to the console for testing
+    console.log('Current First Href:', firstHref);
+    console.log('Current Second Href:', secondHref);
 
-    // Check if a match was found
-    if (match && match.length > 0) {
-      // Extract the first match
-      const firstMatch = match[0];
-
-      // Check if the value has changed
-      if (firstMatch !== previousValue) {
+    // Check if the values have changed from null after the first search of the session
+    if (isFirstSearchOfSession) {
+      // Update the session flag to indicate that the first search of the session has occurred
+      isFirstSearchOfSession = false;
+    } else if (!isFirstSearchOfSession && firstHref !== previousValue) {
+      // Check if the new first value is not the same as the previous second value
+      if (firstHref !== previousSecondValue) {
         // Display a notification
         if (enablePushNotifications) {
           showNotification('New Item listed');
@@ -354,15 +384,16 @@
           playSelectedSound();
         }
 
-        // Update the previousValue to the new value
-        previousValue = firstMatch;
-
         // Notify the current tab if tab notifications are enabled
         if (enableTabNotifications) {
           notifyCurrentTab();
         }
       }
     }
+
+    // Update the previous values to the new values for comparison in the next cycle
+    previousValue = firstHref;
+    previousSecondValue = secondHref;
   }
 
   // Function to play the selected sound
@@ -382,13 +413,6 @@
         icon: 'https://live.projectdiablo2.com/image/portal.png', // Replace with your own icon URL
       };
       const notification = new Notification('PD2 Market', options);
-    }
-  }
-
-  // Function to request notification permission
-  function requestNotificationPermission() {
-    if ('Notification' in window && Notification.permission !== 'granted') {
-      Notification.requestPermission();
     }
   }
 
@@ -453,10 +477,13 @@
 
   // Trigger the click function when the page loads and create the menu
   window.addEventListener('load', function () {
-    if (window.location.hostname.endsWith('live.projectdiablo2.com') && window.location.pathname === '/market') {
-      // Check if the hostname ends with 'live.projectdiablo2.com' and the path is '/market'
+    if (
+      (window.location.hostname.endsWith('live.projectdiablo2.com') ||
+      window.location.hostname.endsWith('projectdiablo2.com')) &&
+      window.location.pathname === '/market'
+    ) {
+      // Check if the hostname ends with 'live.projectdiablo2.com' or 'projectdiablo2.com' and the path is '/market'
       createMenu();
-      requestNotificationPermission(); // Request permission on page load
     }
   });
 })();
