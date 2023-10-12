@@ -2,7 +2,7 @@
 // @name         PD2 Livesearcher
 // @namespace    https://github.com/D4Enjoyer/PD2-Livesearcher
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=projectdiablo2.com
-// @version      1.4.0
+// @version      1.5.0
 // @description  Script to run livesearches on pd2-trade by simulating clicks on the "Search" button. Includes customizable Browser/Sound/Tab notifications.
 // @author       A God Gamer with his dear friends Google-search and ChatGPT
 // @match        https://www.live.projectdiablo2.com/market
