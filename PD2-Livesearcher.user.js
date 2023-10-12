@@ -5,10 +5,7 @@
 // @version      1.5.0
 // @description  Script to run livesearches on pd2-trade by simulating clicks on the "Search" button. Includes customizable Browser/Sound/Tab notifications.
 // @author       A God Gamer with his dear friends Google-search and ChatGPT
-// @match        https://www.live.projectdiablo2.com/market
-// @match        https://www.projectdiablo2.com/market
-// @match        https://live.projectdiablo2.com/market
-// @match        https://projectdiablo2.com/market
+// @match        **projectdiablo2.com/market
 // @grant        GM_notification
 // ==/UserScript==
 
