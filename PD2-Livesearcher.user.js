@@ -5,6 +5,8 @@
 // @version      1.4.0
 // @description  Script to run livesearches on pd2-trade by simulating clicks on the "Search" button. Includes customizable Browser/Sound/Tab notifications.
 // @author       A God Gamer with his dear friends Google-search and ChatGPT
+// @match        https://www.live.projectdiablo2.com/market
+// @match        https://www.projectdiablo2.com/market
 // @match        https://live.projectdiablo2.com/market
 // @match        https://projectdiablo2.com/market
 // @grant        GM_notification
@@ -16,14 +18,13 @@
   let intervalId;
   let isRunning = false;
   let interval = 5000; // Default interval in milliseconds (5 seconds)
-  let previousValue = null;
-  let previousSecondValue = null;
   let isFirstSearchOfSession = true;
   let soundVolume = 0.3; // Default sound volume (0 to 1)
   let selectedSoundIndex = 0; // Default sound index (0 to 4)
   let enablePushNotifications = false; // Default setting for push notifications
   let enableSoundNotifications = false; // Default setting for sound notifications
   let enableTabNotifications = false; // Default setting for tab notifications
+  let previousListings = []; // Keep track of previous listings
    const soundFiles = [
     'https://web.poecdn.com/audio/trade/pulse.mp3', // Pulse
     'https://web.poecdn.com/audio/trade/piano.mp3', // Piano
@@ -70,14 +71,16 @@
   }
 
   // Function to toggle the script on/off
-  function toggleScript() {
-    if (isRunning) {
-      clearInterval(intervalId);
-    } else {
-      intervalId = setInterval(clickButton, interval);
-    }
-    isRunning = !isRunning;
+function toggleScript() {
+  if (isRunning) {
+    clearInterval(intervalId);
+    // Initialize previousListings when stopping the script
+    previousListings = [];
+  } else {
+    intervalId = setInterval(clickButton, interval);
   }
+  isRunning = !isRunning;
+}
 
   // Function to create the menu and its items
   function createMenu() {
@@ -315,8 +318,7 @@
 
     const intervalLabel = document.createElement('label');
     intervalLabel.innerText = 'Interval (milliseconds):';
-    intervalLabel.style.display
-= 'block';
+    intervalLabel.style.display = 'block';
     intervalLabel.style.marginTop = '10px';
     intervalLabel.style.color = 'black';
 
@@ -354,48 +356,44 @@
     }
   }
 
-  // Function to extract and notify market listing value
-  function extractAndNotifyMarketListingValue() {
-    // Use querySelectorAll to find all elements with the class "image flex justify-center items-center"
-    const elements = document.querySelectorAll('.image.flex.justify-center.items-center');
+// Function to extract and notify market listing value
+function extractAndNotifyMarketListingValue() {
+  // Use querySelectorAll to find all elements with the class "image flex justify-center items-center"
+  const elements = document.querySelectorAll('.image.flex.justify-center.items-center');
 
-    // Extract the href attribute of the first and second elements, if they exist
-    const firstHref = elements.length > 0 ? elements[0].getAttribute('href') : null;
-    const secondHref = elements.length > 1 ? elements[1].getAttribute('href') : null;
+  // Extract the href attribute of all elements
+  const currentListings = Array.from(elements).map(element => element.getAttribute('href'));
 
-    // Log the current first and second href values to the console for testing
-    console.log('Current First Href:', firstHref);
-    console.log('Current Second Href:', secondHref);
+  // If it's the first search, update previousListings without triggering notifications
+  if (isFirstSearchOfSession) {
+    previousListings = currentListings;
+    isFirstSearchOfSession = false; // Update the session flag
+  } else {
+    // Check for new listings by comparing the current listings with the previous ones
+    const newListings = currentListings.filter(listing => !previousListings.includes(listing));
 
-    // Check if the values have changed from null after the first search of the session
-    if (isFirstSearchOfSession) {
-      // Update the session flag to indicate that the first search of the session has occurred
-      isFirstSearchOfSession = false;
-    } else if (!isFirstSearchOfSession && firstHref !== previousValue) {
-      // Check if the new first value is not the same as the previous second value
-      if (firstHref !== previousSecondValue) {
-        // Display a notification
-        if (enablePushNotifications) {
-          showNotification('New Item listed');
-        }
-
-        // Play the selected sound if sound notifications are enabled
-        if (enableSoundNotifications) {
-          playSelectedSound();
-        }
-
-        // Notify the current tab if tab notifications are enabled
-        if (enableTabNotifications) {
-          notifyCurrentTab();
-        }
+    // If there are new listings, notify and update previous listings
+    if (newListings.length > 0) {
+      // Display a notification
+      if (enablePushNotifications) {
+        showNotification('New Item listed');
       }
+
+      // Play the selected sound if sound notifications are enabled
+      if (enableSoundNotifications) {
+        playSelectedSound();
+      }
+
+      // Notify the current tab if tab notifications are enabled
+      if (enableTabNotifications) {
+        notifyCurrentTab();
+      }
+
+      // Update previous listings
+      previousListings = currentListings;
     }
-
-    // Update the previous values to the new values for comparison in the next cycle
-    previousValue = firstHref;
-    previousSecondValue = secondHref;
   }
-
+}
   // Function to play the selected sound
   function playSelectedSound() {
     if (enableSoundNotifications) {
