@@ -316,12 +316,18 @@
 
     const intervalInput = document.createElement('input');
     intervalInput.type = 'number';
-    intervalInput.min = '1000';
+    intervalInput.min = '5000';
     intervalInput.value = interval.toString();
     intervalInput.style.width = '100%';
 
     intervalInput.addEventListener('input', function () {
       interval = parseInt(intervalInput.value);
+
+	  // If the script is running, restart the timer with the new interval
+	  if (isRunning) {
+		clearInterval(intervalId);
+		intervalId = setInterval(clickButton, interval);
+	  }
     });
 
     settingsBox.appendChild(enablePushContainer);
