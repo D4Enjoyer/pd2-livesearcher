@@ -2,9 +2,8 @@
 // @name         PD2 Livesearcher
 // @namespace    https://github.com/D4Enjoyer/PD2-Livesearcher
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=projectdiablo2.com
-
 // @version      1.6.0
-// @description  Script to run livesearches on the PD2 website by. Includes customizable Browser-/Sound- and Tab-notifications.
+// @description  Script to run livesearches on pd2-trade by simulating clicks on the "Search" button. Includes customizable Browser/Sound/Tab notifications.
 // @author       A God Gamer with his dear friends Google-search and ChatGPT
 // @match        **projectdiablo2.com/market
 // @grant        GM_notification
@@ -65,7 +64,7 @@
       buttons[0].click(); // Assuming you want to click the first button found with the specified class
 
       // Extract and notify market listing value after a click
-      setTimeout(extractAndNotifyMarketListingValue, 500); // Call the function 
+      setTimeout(extractAndNotifyMarketListingValue, 500); // Call the function after a 500ms delay
     }
   }
 
@@ -386,10 +385,6 @@
         previousListings = currentListings;
       }
     }
-
-    // Update the previous values to the new values for comparison in the next cycle
-    previousValue = firstHref;
-    previousSecondValue = secondHref;
   }
 
   // Function to play the selected sound
