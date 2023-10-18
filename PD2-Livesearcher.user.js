@@ -232,24 +232,19 @@ function toggleScript() {
     // Define a function to handle changes in push notification checkbox.
     function handlePushCheckboxChange() {
       enablePushNotifications = this.checked;
-      // Send a test push notification when enabling push notifications
-      if (enablePushNotifications) {
-        showNotification('Test Push Notification');
-      }
+        showNotification('Test Push Notification');      
     }
 
     // Define a function to handle changes in sound notification checkbox.
     function handleSoundCheckboxChange() {
       enableSoundNotifications = this.checked;
-      playSelectedSound(); // Play the selected sound to test
+		playSelectedSound(); // Play the selected sound to test
     }
 
     // Define a function to handle changes in tab notification checkbox.
     function handleTabCheckboxChange() {
       enableTabNotifications = this.checked;
-      if (!enableTabNotifications) {
-        clearTabNotifications();
-      }
+        clearTabNotifications();      
     }
 
     const enablePushContainer = createCheckboxInputWithLabel(
@@ -460,11 +455,6 @@ function extractAndNotifyMarketListingValue() {
     };
 
     document.addEventListener('visibilitychange', visibilityChangeListener);
-  }
-
-  // Function to clear tab notifications from all tabs
-  function clearTabNotifications() {
-    document.title = document.title.replace('(!) ', ''); // Remove (!) from tab title
   }
 
   // Load saved settings when the page loads
