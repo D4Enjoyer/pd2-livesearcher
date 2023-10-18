@@ -2,6 +2,7 @@
 // @name         PD2 Livesearcher
 // @namespace    https://github.com/D4Enjoyer/PD2-Livesearcher
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=projectdiablo2.com
+
 // @version      1.6.0
 // @description  Script to run livesearches on the PD2 website by. Includes customizable Browser-/Sound- and Tab-notifications.
 // @author       A God Gamer with his dear friends Google-search and ChatGPT
@@ -385,6 +386,10 @@
         previousListings = currentListings;
       }
     }
+
+    // Update the previous values to the new values for comparison in the next cycle
+    previousValue = firstHref;
+    previousSecondValue = secondHref;
   }
 
   // Function to play the selected sound
