@@ -2,8 +2,8 @@
 // @name         PD2 Livesearcher
 // @namespace    https://github.com/D4Enjoyer/PD2-Livesearcher
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=projectdiablo2.com
-// @version      1.5.0
-// @description  Script to run livesearches on pd2-trade by simulating clicks on the "Search" button. Includes customizable Browser/Sound/Tab notifications.
+// @version      1.6.0
+// @description  Script to run livesearches on the PD2 website by. Includes customizable Browser-/Sound- and Tab-notifications.
 // @author       A God Gamer with his dear friends Google-search and ChatGPT
 // @match        **projectdiablo2.com/market
 // @grant        GM_notification
@@ -14,7 +14,7 @@
 
   let intervalId;
   let isRunning = false;
-  let interval = 5000; // Default interval in milliseconds (5 seconds)
+  let interval = 10000; // Default interval in milliseconds (5 seconds)
   let isFirstSearchOfSession = true;
   let soundVolume = 0.3; // Default sound volume (0 to 1)
   let selectedSoundIndex = 0; // Default sound index (0 to 4)
@@ -64,7 +64,7 @@
       buttons[0].click(); // Assuming you want to click the first button found with the specified class
 
       // Extract and notify market listing value after a click
-      setTimeout(extractAndNotifyMarketListingValue, 2000); // Call the function 2 seconds after the click
+      setTimeout(extractAndNotifyMarketListingValue, 500); // Call the function 
     }
   }
 
@@ -208,7 +208,7 @@
 
     // Define a function to create checkbox input elements with labels.
     const createCheckboxInputWithLabel = (labelText, checked, onChange) => {
-      const container = document.createElement('div';
+      const container = document.createElement('div');
       container.style.display = 'flex';
       container.style.alignItems = 'center';
       container.style.justifyContent = 'space-between'; // Right-align checkboxes
@@ -233,19 +233,18 @@
     // Define a function to handle changes in push notification checkbox.
     function handlePushCheckboxChange() {
       enablePushNotifications = this.checked;
-      showNotification('Test Push Notification');
+      showNotification('Test Push Notification'); // Send Push Notification to test.
     }
 
     // Define a function to handle changes in sound notification checkbox.
     function handleSoundCheckboxChange() {
       enableSoundNotifications = this.checked;
-      playSelectedSound(); // Play the selected sound to test
+      playSelectedSound(); // Play the selected sound to test.
     }
 
     // Define a function to handle changes in tab notification checkbox.
     function handleTabCheckboxChange() {
       enableTabNotifications = this.checked;
-      clearTabNotifications();
     }
 
     const enablePushContainer = createCheckboxInputWithLabel(
