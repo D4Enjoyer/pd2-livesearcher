@@ -2,10 +2,11 @@
 // @name         PD2 Livesearcher
 // @namespace    https://github.com/D4Enjoyer/PD2-Livesearcher
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=projectdiablo2.com
-// @version      1.4.0
-// @description  Script to run livesearches on pd2-trade by simulating clicks on the "Search" button. Includes customizable Browser/Sound/Tab notifications.
+
+// @version      1.6.0
+// @description  Script to run livesearches on the PD2 website by. Includes customizable Browser-/Sound- and Tab-notifications.
 // @author       A God Gamer with his dear friends Google-search and ChatGPT
-// @match        https://live.projectdiablo2.com/market
+// @match        **projectdiablo2.com/market
 // @grant        GM_notification
 // ==/UserScript==
 
@@ -14,15 +15,15 @@
 
   let intervalId;
   let isRunning = false;
-  let interval = 5000; // Default interval in milliseconds (5 seconds)
-  let previousValue = null;
-  let previousSecondValue = null;
+  let interval = 10000; // Default interval in milliseconds (5 seconds)
   let isFirstSearchOfSession = true;
   let soundVolume = 0.3; // Default sound volume (0 to 1)
   let selectedSoundIndex = 0; // Default sound index (0 to 4)
   let enablePushNotifications = false; // Default setting for push notifications
-  let enableSoundNotifications = true; // Default setting for sound notifications
-  let enableTabNotifications = true; // Default setting for tab notifications
+  let enableSoundNotifications = false; // Default setting for sound notifications
+  let enableTabNotifications = false; // Default setting for tab notifications
+  let previousListings = []; // Keep track of previous listings
+
   const soundFiles = [
     'https://web.poecdn.com/audio/trade/pulse.mp3', // Pulse
     'https://web.poecdn.com/audio/trade/piano.mp3', // Piano
@@ -31,6 +32,32 @@
     'https://assets.mixkit.co/active_storage/sfx/1792/1792-preview.mp3', // Bell
   ];
 
+  // Function to request notification permission
+  function requestNotificationPermission(permissionType) {
+    if ('Notification' in window) {
+      // Check if the requested permission type is not yet granted
+      if (permissionType === 'push' && !enablePushNotifications) {
+        Notification.requestPermission().then(function (permission) {
+          if (permission === 'granted') {
+            enablePushNotifications = true;
+          }
+        });
+      } else if (permissionType === 'sound' && !enableSoundNotifications) {
+        Notification.requestPermission().then(function (permission) {
+          if (permission === 'granted') {
+            enableSoundNotifications = true;
+          }
+        });
+      } else if (permissionType === 'tab' && !enableTabNotifications) {
+        Notification.requestPermission().then(function (permission) {
+          if (permission === 'granted') {
+            enableTabNotifications = true;
+          }
+        });
+      }
+    }
+  }
+
   // Function to click the button and extract market listing value
   function clickButton() {
     const buttons = document.querySelectorAll('button.gold.mb-2'); // Update the class to 'button.gold'
@@ -38,7 +65,7 @@
       buttons[0].click(); // Assuming you want to click the first button found with the specified class
 
       // Extract and notify market listing value after a click
-      setTimeout(extractAndNotifyMarketListingValue, 2000); // Call the function 2 seconds after the click
+      setTimeout(extractAndNotifyMarketListingValue, 500); // Call the function 
     }
   }
 
@@ -46,6 +73,8 @@
   function toggleScript() {
     if (isRunning) {
       clearInterval(intervalId);
+      // Initialize previousListings when stopping the script
+      previousListings = [];
     } else {
       intervalId = setInterval(clickButton, interval);
     }
@@ -205,24 +234,18 @@
     // Define a function to handle changes in push notification checkbox.
     function handlePushCheckboxChange() {
       enablePushNotifications = this.checked;
-      // Send a test push notification when enabling push notifications
-      if (enablePushNotifications) {
-        showNotification('Test Push Notification');
-      }
+      showNotification('Test Push Notification'); // Send Push Notification to test.
     }
 
     // Define a function to handle changes in sound notification checkbox.
     function handleSoundCheckboxChange() {
       enableSoundNotifications = this.checked;
-      playSelectedSound(); // Play the selected sound to test
+      playSelectedSound(); // Play the selected sound to test.
     }
 
     // Define a function to handle changes in tab notification checkbox.
     function handleTabCheckboxChange() {
       enableTabNotifications = this.checked;
-      if (!enableTabNotifications) {
-        clearTabNotifications();
-      }
     }
 
     const enablePushContainer = createCheckboxInputWithLabel(
@@ -331,21 +354,19 @@
     // Use querySelectorAll to find all elements with the class "image flex justify-center items-center"
     const elements = document.querySelectorAll('.image.flex.justify-center.items-center');
 
-    // Extract the href attribute of the first and second elements, if they exist
-    const firstHref = elements.length > 0 ? elements[0].getAttribute('href') : null;
-    const secondHref = elements.length > 1 ? elements[1].getAttribute('href') : null;
+    // Extract the href attribute of all elements
+    const currentListings = Array.from(elements).map(element => element.getAttribute('href'));
 
-    // Log the current first and second href values to the console for testing
-    // console.log('Current First Href:', firstHref);
-    // console.log('Current Second Href:', secondHref);
-
-    // Check if the values have changed from null after the first search of the session
+    // If it's the first search, update previousListings without triggering notifications
     if (isFirstSearchOfSession) {
-      // Update the session flag to indicate that the first search of the session has occurred
-      isFirstSearchOfSession = false;
-    } else if (!isFirstSearchOfSession && firstHref !== previousValue) {
-      // Check if the new first value is not the same as the previous second value
-      if (firstHref !== previousSecondValue) {
+      previousListings = currentListings;
+      isFirstSearchOfSession = false; // Update the session flag
+    } else {
+      // Check for new listings by comparing the current listings with the previous ones
+      const newListings = currentListings.filter(listing => !previousListings.includes(listing));
+
+      // If there are new listings, notify and update previous listings
+      if (newListings.length > 0) {
         // Display a notification
         if (enablePushNotifications) {
           showNotification('New Item listed');
@@ -360,6 +381,9 @@
         if (enableTabNotifications) {
           notifyCurrentTab();
         }
+
+        // Update previous listings
+        previousListings = currentListings;
       }
     }
 
@@ -385,13 +409,6 @@
         icon: 'https://live.projectdiablo2.com/image/portal.png', // Replace with your own icon URL
       };
       const notification = new Notification('PD2 Market', options);
-    }
-  }
-
-  // Function to request notification permission
-  function requestNotificationPermission() {
-    if ('Notification' in window && Notification.permission !== 'granted') {
-      Notification.requestPermission();
     }
   }
 
@@ -446,20 +463,18 @@
     document.addEventListener('visibilitychange', visibilityChangeListener);
   }
 
-  // Function to clear tab notifications from all tabs
-  function clearTabNotifications() {
-    document.title = document.title.replace('(!) ', ''); // Remove (!) from tab title
-  }
-
   // Load saved settings when the page loads
   loadSettings();
 
   // Trigger the click function when the page loads and create the menu
   window.addEventListener('load', function () {
-    if (window.location.hostname.endsWith('live.projectdiablo2.com') && window.location.pathname === '/market') {
-      // Check if the hostname ends with 'live.projectdiablo2.com' and the path is '/market'
+    if (
+      (window.location.hostname.endsWith('live.projectdiablo2.com') ||
+      window.location.hostname.endsWith('projectdiablo2.com')) &&
+      window.location.pathname === '/market'
+    ) {
+      // Check if the hostname ends with 'live.projectdiablo2.com' or 'projectdiablo2.com' and the path is '/market'
       createMenu();
-      requestNotificationPermission(); // Request permission on page load
     }
   });
 })();
