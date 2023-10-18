@@ -22,7 +22,8 @@
   let enableSoundNotifications = false; // Default setting for sound notifications
   let enableTabNotifications = false; // Default setting for tab notifications
   let previousListings = []; // Keep track of previous listings
-   const soundFiles = [
+
+  const soundFiles = [
     'https://web.poecdn.com/audio/trade/pulse.mp3', // Pulse
     'https://web.poecdn.com/audio/trade/piano.mp3', // Piano
     'https://web.poecdn.com/audio/trade/chime.mp3', // Chime
@@ -68,16 +69,16 @@
   }
 
   // Function to toggle the script on/off
-function toggleScript() {
-  if (isRunning) {
-    clearInterval(intervalId);
-    // Initialize previousListings when stopping the script
-    previousListings = [];
-  } else {
-    intervalId = setInterval(clickButton, interval);
+  function toggleScript() {
+    if (isRunning) {
+      clearInterval(intervalId);
+      // Initialize previousListings when stopping the script
+      previousListings = [];
+    } else {
+      intervalId = setInterval(clickButton, interval);
+    }
+    isRunning = !isRunning;
   }
-  isRunning = !isRunning;
-}
 
   // Function to create the menu and its items
   function createMenu() {
@@ -207,7 +208,7 @@ function toggleScript() {
 
     // Define a function to create checkbox input elements with labels.
     const createCheckboxInputWithLabel = (labelText, checked, onChange) => {
-      const container = document.createElement('div');
+      const container = document.createElement('div';
       container.style.display = 'flex';
       container.style.alignItems = 'center';
       container.style.justifyContent = 'space-between'; // Right-align checkboxes
@@ -232,19 +233,19 @@ function toggleScript() {
     // Define a function to handle changes in push notification checkbox.
     function handlePushCheckboxChange() {
       enablePushNotifications = this.checked;
-        showNotification('Test Push Notification');      
+      showNotification('Test Push Notification');
     }
 
     // Define a function to handle changes in sound notification checkbox.
     function handleSoundCheckboxChange() {
       enableSoundNotifications = this.checked;
-		playSelectedSound(); // Play the selected sound to test
+      playSelectedSound(); // Play the selected sound to test
     }
 
     // Define a function to handle changes in tab notification checkbox.
     function handleTabCheckboxChange() {
       enableTabNotifications = this.checked;
-        clearTabNotifications();      
+      clearTabNotifications();
     }
 
     const enablePushContainer = createCheckboxInputWithLabel(
@@ -348,44 +349,45 @@ function toggleScript() {
     }
   }
 
-// Function to extract and notify market listing value
-function extractAndNotifyMarketListingValue() {
-  // Use querySelectorAll to find all elements with the class "image flex justify-center items-center"
-  const elements = document.querySelectorAll('.image.flex.justify-center.items-center');
+  // Function to extract and notify market listing value
+  function extractAndNotifyMarketListingValue() {
+    // Use querySelectorAll to find all elements with the class "image flex justify-center items-center"
+    const elements = document.querySelectorAll('.image.flex.justify-center.items-center');
 
-  // Extract the href attribute of all elements
-  const currentListings = Array.from(elements).map(element => element.getAttribute('href'));
+    // Extract the href attribute of all elements
+    const currentListings = Array.from(elements).map(element => element.getAttribute('href'));
 
-  // If it's the first search, update previousListings without triggering notifications
-  if (isFirstSearchOfSession) {
-    previousListings = currentListings;
-    isFirstSearchOfSession = false; // Update the session flag
-  } else {
-    // Check for new listings by comparing the current listings with the previous ones
-    const newListings = currentListings.filter(listing => !previousListings.includes(listing));
-
-    // If there are new listings, notify and update previous listings
-    if (newListings.length > 0) {
-      // Display a notification
-      if (enablePushNotifications) {
-        showNotification('New Item listed');
-      }
-
-      // Play the selected sound if sound notifications are enabled
-      if (enableSoundNotifications) {
-        playSelectedSound();
-      }
-
-      // Notify the current tab if tab notifications are enabled
-      if (enableTabNotifications) {
-        notifyCurrentTab();
-      }
-
-      // Update previous listings
+    // If it's the first search, update previousListings without triggering notifications
+    if (isFirstSearchOfSession) {
       previousListings = currentListings;
+      isFirstSearchOfSession = false; // Update the session flag
+    } else {
+      // Check for new listings by comparing the current listings with the previous ones
+      const newListings = currentListings.filter(listing => !previousListings.includes(listing));
+
+      // If there are new listings, notify and update previous listings
+      if (newListings.length > 0) {
+        // Display a notification
+        if (enablePushNotifications) {
+          showNotification('New Item listed');
+        }
+
+        // Play the selected sound if sound notifications are enabled
+        if (enableSoundNotifications) {
+          playSelectedSound();
+        }
+
+        // Notify the current tab if tab notifications are enabled
+        if (enableTabNotifications) {
+          notifyCurrentTab();
+        }
+
+        // Update previous listings
+        previousListings = currentListings;
+      }
     }
   }
-}
+
   // Function to play the selected sound
   function playSelectedSound() {
     if (enableSoundNotifications) {
