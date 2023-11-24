@@ -14,7 +14,7 @@
 
   let intervalId;
   let isRunning = false;
-  let interval = 10000; // Default interval in milliseconds (5 seconds)
+  let interval = 10000; // Default interval in milliseconds 
   let isFirstSearchOfSession = true;
   let soundVolume = 0.3; // Default sound volume (0 to 1)
   let selectedSoundIndex = 0; // Default sound index (0 to 4)
