@@ -11,10 +11,6 @@
 // @require      https://gist.github.com/raw/2625891/waitForKeyElements.js
 // ==/UserScript==
 
-//TODO: check push notifications
-
-//TODO: highlight number when inputInterval become active
-
 // Sound Files
 const soundFiles = [
   "https://web.poecdn.com/audio/trade/pulse.mp3", // Pulse
@@ -58,7 +54,7 @@ let tempEnableSound = settings.notifications.enableSoundNotifications;
 let tempEnableTab = settings.notifications.enableTabNotifications;
 let tempEnableTitleChange = settings.notifications.enableTabTitleChange;
 let defaultTitle;
-let customTitle = defaultTitle;
+let customTitle;
 let savedTabName;
 
 // Function to get default title
@@ -66,6 +62,13 @@ function getDefaultTitle() {
   const currentTitle = document.title;
   defaultTitle = currentTitle;
   console.log(`Set default Title to: ${currentTitle}`);
+}
+
+// Function to reset title
+
+function resetTitle() {
+  document.title = defaultTitle;
+  console.log(`Set default Title to: ${document.title}`);
 }
 
 // Function to apply temporary settings to actual settings
@@ -145,6 +148,7 @@ function startScript() {
     settings.scriptState.isRunning = true; // Update the script state
     console.log("Livesearcher started.");
     toggleButtonTextAndColor();
+    disableStartButton();
   } catch (error) {
     console.error("Error in startScript:", error);
   }
@@ -165,8 +169,10 @@ function stopScript() {
     settings.scriptState.isRunning = false; // Update the script state
     settings.scriptState.previousListings = []; // Reset previous listings
     settings.scriptState.isFirstSearchOfSession = true;
-    console.log("Livesearcher stopped.");
+    resetTitle();
     toggleButtonTextAndColor();
+    disableStartButton();
+    console.log("Livesearcher stopped.");
   } catch (error) {
     console.error("Error in stopScript:", error);
   }
@@ -191,6 +197,7 @@ function runSearch() {
     extractAndNotifyMarketListingValue();
   } else {
     console.error("Button not found or unavailable."); // Log an error if the button is not found
+    stopScript();
   }
 }
 
@@ -324,16 +331,27 @@ function notifyTestTab() {
   }
 }
 
-// Function to show a push notification
 function showNotification(message) {
-  try {
-    const options = {
-      body: message,
-      icon: "https://live.projectdiablo2.com/image/portal.png",
-    };
-    const notification = new Notification("PD2 Market: New Item found", options);
-  } catch (error) {
-    console.error("Error displaying notification:", error);
+  if ("Notification" in window) {
+    if (Notification.permission === "granted") {
+      try {
+        const options = {
+          body: message,
+          icon: "https://live.projectdiablo2.com/image/portal.png",
+        };
+        const notification = new Notification("PD2 Market: New Item found", options);
+      } catch (error) {
+        console.error("Error displaying notification:", error);
+      }
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          showNotification(message); // Try showing the notification again after permission is granted
+        }
+      });
+    }
+  } else {
+    console.error("Notifications are not supported in this browser.");
   }
 }
 
@@ -389,8 +407,8 @@ function handleStartButtonClick() {
 function handleStopButtonClick() {
   try {
     stopScript(); // Stop the script
+    showStopIconForTwoSeconds();
     toggleButtonTextAndColor();
-    setTitle(defaultTitle);
   } catch (error) {
     console.error("Error in handleStopButtonClick:", error);
   }
@@ -454,7 +472,16 @@ function toggleButtonTextAndColor() {
     stopButton.text("Stop");
   } else {
     startButton.text("Start");
-    showStopIconForTwoSeconds();
+  }
+}
+
+function disableStartButton() {
+  const startButton = document.getElementById("startButton");
+
+  if (settings.scriptState.isRunning) {
+    startButton.disabled = true;
+  } else {
+    startButton.disabled = false;
   }
 }
 
@@ -854,7 +881,32 @@ function openTabNameModal() {
   modalContent.append(inputField, confirmButton, closeButton);
   modal.append(modalContent);
   $("body").append(modal);
-  saveButton.focus(); // Focus on the input field when the modal opens
+  inputField.focus(); // Focus on the input field when the modal opens
+}
+
+// Function to handle clicks when the script is running
+function handleClick(event) {
+  const clickedElement = event.target;
+
+  if (settings.scriptState.isRunning) {
+    const parentClasses = ["navigation", "menu", "toolbar", "filters"];
+
+    // Check if the clicked element is within one of the specified parent classes
+    const isInParentClass = parentClasses.some((parentClass) => {
+      return clickedElement.closest(`.${parentClass}`);
+    });
+
+    // Check for the additional exception
+    const containsSearchButton = clickedElement.closest(".button.gold.mb-2") && clickedElement.textContent.includes("Search");
+    const containsSettingsButton = clickedElement.textContent.includes("Settings");
+    const containsStopButton = clickedElement.textContent.includes("Stop");
+    const containsStartButton = clickedElement.textContent.includes("Start");
+
+    // If clicked outside 'filters' or not on the exceptions, stop the script
+    if (isInParentClass && !containsSearchButton && !containsSettingsButton && !containsStopButton && !containsStartButton) {
+      stopScript();
+    }
+  }
 }
 
 // Call loadSettings function after creating the menu
@@ -862,5 +914,16 @@ waitForKeyElements("h2.heading.white.sm.mt-4.text-center:contains('Search to see
   addCustomStyles();
   createButtons();
   loadSettings();
-  getDefaultTitle();
+  if (defaultTitle === undefined) {
+    getDefaultTitle();
+  }
+
+  // Attach click event listeners to each specified parent class
+  const parentClasses = ["navigation", "menu", "toolbar", "filters"];
+  parentClasses.forEach((parentClass) => {
+    const elements = document.getElementsByClassName(parentClass);
+    Array.from(elements).forEach((element) => {
+      element.addEventListener("click", handleClick);
+    });
+  });
 });
