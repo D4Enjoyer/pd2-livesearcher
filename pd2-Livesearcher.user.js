@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         pd2-livesearcher
-// @namespace    https://github.com/D4Enjoyer/PD2-Livesearcher
+// @namespace    https://github.com/D4Enjoyer/pd2-livesearcher
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=projectdiablo2.com
-// @version      2.0.0
+// @version      2.1.0
 // @description  Script to run livesearches on the PD2 website by. Includes Push-/Sound- and Tab-notifications.
 // @author       A God Gamer with his dear friends Google-search and ChatGPT
 // @match        https://projectdiablo2.com/*
@@ -136,6 +136,23 @@ function discardTempSettings() {
   console.log("Temp Settings Discarded");
 }
 
+// Function to open "My Filters" tab
+function openMyFiltersTab() {
+  const selectElement = $("header.flex.justify-between.cursor-pointer[data-v-f08e33fc]:contains('My Filters')");
+  selectElement.click(); // Trigger click
+}
+
+// Function to select the sort option
+function selectSortOption() {
+  const headingElement1 = $("h2.heading.white.xs.self-center.mb-2[data-v-3184b77e][data-v-f08e33fc]:contains('Sort By')");
+  const selectElement1 = headingElement1.next("select.input.text-center[data-v-82dfe468][data-v-f08e33fc]");
+  selectElement1.val("bumped_at").change(); // Trigger change event after setting value
+
+  const headingElement2 = $("h2.heading.white.xs.self-center.mb-2[data-v-3184b77e][data-v-f08e33fc]:contains('Sort Order')");
+  const selectElement2 = headingElement2.next("select.input.text-center[data-v-82dfe468][data-v-f08e33fc]");
+  selectElement2.val("-1").change(); // Trigger change event after setting value
+}
+
 // Function to start the script
 function startScript() {
   try {
@@ -238,12 +255,25 @@ function handleNewListings(newListings) {
 
 // Function to check for new listings and trigger notifications
 function checkForNewListings(currentListings) {
-  // Check for new listings by comparing the current listings with the previous ones
   const newListings = currentListings.filter((listing) => !settings.scriptState.previousListings.includes(listing));
 
-  // Check if there are new listings
+  // Check if there are new listings and their positions
   if (newListings.length > 0) {
-    handleNewListings(newListings);
+    let newListingsAtLast = false;
+
+    if (currentListings.length >= 4) {
+      const lastIndex = currentListings.length - 1;
+      const newListingsPositions = newListings.map((listing) => currentListings.indexOf(listing));
+
+      if (!newListingsPositions.some((position) => position === lastIndex)) {
+        // If newListings don't appear in the last position
+        handleNewListings(newListings);
+      } else {
+        newListingsAtLast = true;
+      }
+    } else {
+      handleNewListings(newListings);
+    }
   }
 }
 
@@ -917,6 +947,8 @@ waitForKeyElements("h2.heading.white.sm.mt-4.text-center:contains('Search to see
   if (defaultTitle === undefined) {
     getDefaultTitle();
   }
+  openMyFiltersTab();
+  selectSortOption();
 
   // Attach click event listeners to each specified parent class
   const parentClasses = ["navigation", "menu", "toolbar", "filters"];
